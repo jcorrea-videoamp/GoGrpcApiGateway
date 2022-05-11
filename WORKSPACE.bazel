@@ -1,0 +1,208 @@
+workspace(
+    name = "gogrpcapigateway",
+)
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "io_bazel_rules_go",
+    sha256 = "f2dcd210c7095febe54b804bb1cd3a58fe8435a909db2ec04e31542631cf715c",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.31.0/rules_go-v0.31.0.zip",
+        "https://github.com/bazelbuild/rules_go/releases/download/v0.31.0/rules_go-v0.31.0.zip",
+    ],
+)
+
+http_archive(
+    name = "bazel_gazelle",
+    sha256 = "de69a09dc70417580aabf20a28619bb3ef60d038470c7cf8442fafcf627c21cb",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.24.0/bazel-gazelle-v0.24.0.tar.gz",
+        "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.24.0/bazel-gazelle-v0.24.0.tar.gz",
+    ],
+)
+
+load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
+load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
+
+go_rules_dependencies()
+
+go_register_toolchains(version = "1.18")
+
+gazelle_dependencies(go_repository_default_config = "//:WORKSPACE.bazel")
+
+# PROTOBUF AND GRPC RULES
+
+# https://github.com/bazelbuild/rules_go/blob/master/README.rst#protobuf-and-grpc
+
+http_archive(
+    name = "com_google_protobuf",
+    strip_prefix = "protobuf-3.19.4",
+    urls = [
+        "https://mirror.bazel.build/github.com/protocolbuffers/protobuf/archive/v3.19.4.tar.gz",
+        "https://github.com/protocolbuffers/protobuf/archive/v3.19.4.tar.gz",
+    ],
+)
+
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+
+protobuf_deps()
+
+# https://rules-proto-grpc.com/en/latest/index.html#sec-installation
+
+http_archive(
+    name = "rules_proto_grpc",
+    sha256 = "507e38c8d95c7efa4f3b1c0595a8e8f139c885cb41a76cab7e20e4e67ae87731",
+    strip_prefix = "rules_proto_grpc-4.1.1",
+    urls = ["https://github.com/rules-proto-grpc/rules_proto_grpc/archive/4.1.1.tar.gz"],
+)
+
+load("@rules_proto_grpc//:repositories.bzl", "rules_proto_grpc_toolchains", "rules_proto_grpc_repos")
+rules_proto_grpc_toolchains()
+rules_proto_grpc_repos()
+
+load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
+rules_proto_dependencies()
+rules_proto_toolchains()
+
+
+load("@rules_proto_grpc//grpc-gateway:repositories.bzl", rules_proto_grpc_gateway_repos = "gateway_repos")
+
+rules_proto_grpc_gateway_repos()
+
+# repos
+
+# This one is needed to build protobufs and grpc
+go_repository(
+    name = "org_golang_x_net",
+    build_file_proto_mode = "disable",
+    importpath = "golang.org/x/net",
+    sum = "h1:HVyaeDAYux4pnY+D/SiwmLOR36ewZ4iGQIIrtnuCjFA=",
+    version = "v0.0.0-20220425223048-2871e0cb64e4",
+)
+
+# gRPC gateway repos
+
+go_repository(
+    name = "com_github_grpc_ecosystem_grpc_gateway_v2",
+    build_file_proto_mode = "disable",
+    importpath = "github.com/grpc-ecosystem/grpc-gateway/v2",
+    sum = "h1:ESEyqQqXXFIcImj/BE8oKEX37Zsuceb2cZI+EL/zNCY=",
+    version = "v2.10.0",
+)
+
+go_repository(
+    name = "io_k8s_api",
+    build_file_proto_mode = "disable",
+    importpath = "k8s.io/api",
+    sum = "h1:xk7C+rMjF/EGELiD560jdmwzrB788mfcHiNbMQLIVI8=",
+    version = "v0.22.5",
+)
+go_repository(
+    name = "io_k8s_apimachinery",
+    build_file_proto_mode = "disable",
+    importpath = "k8s.io/apimachinery",
+    sum = "h1:cIPwldOYm1Slq9VLBRPtEYpyhjIm1C6aAMAoENuvN9s=",
+    version = "v0.22.5",
+)
+go_repository(
+    name = "io_k8s_apiserver",
+    build_file_proto_mode = "disable",
+    importpath = "k8s.io/apiserver",
+    sum = "h1:71krQxCUz218ecb+nPhfDsNB6QgP1/4EMvi1a2uYBlg=",
+    version = "v0.22.5",
+)
+go_repository(
+    name = "io_k8s_client_go",
+    build_file_proto_mode = "disable",
+    importpath = "k8s.io/client-go",
+    sum = "h1:I8Zn/UqIdi2r02aZmhaJ1hqMxcpfJ3t5VqvHtctHYFo=",
+    version = "v0.22.5",
+)
+go_repository(
+    name = "io_k8s_code_generator",
+    build_file_proto_mode = "disable",
+    importpath = "k8s.io/code-generator",
+    sum = "h1:kM/68Y26Z/u//TFc1ggVVcg62te8A2yQh57jBfD0FWQ=",
+    version = "v0.19.7",
+)
+
+go_repository(
+    name = "io_k8s_component_base",
+    build_file_proto_mode = "disable",
+    importpath = "k8s.io/component-base",
+    sum = "h1:U0eHqZm7mAFE42hFwYhY6ze/MmVaW00JpMrzVsQmzYE=",
+    version = "v0.22.5",
+)
+go_repository(
+    name = "io_k8s_cri_api",
+    build_file_proto_mode = "disable",
+    importpath = "k8s.io/cri-api",
+    sum = "h1:0DHL/hpTf4Fp+QkUXFefWcp1fhjXr9OlNdY9X99c+O8=",
+    version = "v0.23.1",
+)
+go_repository(
+    name = "io_k8s_gengo",
+    build_file_proto_mode = "disable",
+    importpath = "k8s.io/gengo",
+    sum = "h1:JApXBKYyB7l9xx+DK7/+mFjC7A9Bt5A93FPvFD0HIFE=",
+    version = "v0.0.0-20201113003025-83324d819ded",
+)
+go_repository(
+    name = "io_k8s_klog_v2",
+    build_file_proto_mode = "disable",
+    importpath = "k8s.io/klog/v2",
+    sum = "h1:bUO6drIvCIsvZ/XFgfxoGFQU/a4Qkh0iAlvUR7vlHJw=",
+    version = "v2.30.0",
+)
+go_repository(
+    name = "io_k8s_kube_openapi",
+    build_file_proto_mode = "disable",
+    importpath = "k8s.io/kube-openapi",
+    sum = "h1:sOHNzJIkytDF6qadMNKhhDRpc6ODik8lVC6nOur7B2c=",
+    version = "v0.0.0-20201113171705-d219536bb9fd",
+)
+go_repository(
+    name = "io_k8s_kubernetes",
+    build_file_proto_mode = "disable",
+    importpath = "k8s.io/kubernetes",
+    sum = "h1:qTfB+u5M92k2fCCCVP2iuhgwwSOv1EkAkvQY1tQODD8=",
+    version = "v1.13.0",
+)
+go_repository(
+    name = "io_k8s_sigs_apiserver_network_proxy_konnectivity_client",
+    build_file_proto_mode = "disable",
+    importpath = "sigs.k8s.io/apiserver-network-proxy/konnectivity-client",
+    sum = "h1:4uqm9Mv+w2MmBYD+F4qf/v6tDFUdPOk29C095RbU5mY=",
+    version = "v0.0.15",
+)
+go_repository(
+    name = "io_k8s_sigs_structured_merge_diff_v4",
+    build_file_proto_mode = "disable",
+    importpath = "sigs.k8s.io/structured-merge-diff/v4",
+    sum = "h1:Hr/htKFmJEbtMgS/UD0N+gtgctAqz81t3nu+sPzynno=",
+    version = "v4.1.2",
+)
+
+go_repository(
+    name = "io_k8s_sigs_yaml",
+    build_file_proto_mode = "disable",
+    importpath = "sigs.k8s.io/yaml",
+    sum = "h1:a2VclLzOGrwOHDiV8EfBGhvjHvP46CtW5j6POvhYGGo=",
+    version = "v1.3.0",
+)
+go_repository(
+    name = "io_k8s_utils",
+    build_file_proto_mode = "disable",
+    importpath = "k8s.io/utils",
+    sum = "h1:wxEMGetGMur3J1xuGLQY7GEQYg9bZxKn3tKo5k/eYcs=",
+    version = "v0.0.0-20210930125809-cb0fa318a74b",
+)
+
+go_repository(
+        name = "com_github_gogo_googleapis",
+        build_file_proto_mode = "disable",
+        importpath = "github.com/gogo/googleapis",
+        sum = "h1:zgVt4UpGxcqVOw97aRGxT4svlcmdK35fynLNctY32zI=",
+        version = "v1.4.0",
+)

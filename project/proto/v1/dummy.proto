@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package proto;
+
+option go_package = "github.com/jcorrea-videoamp/GoGrpcApiGateway/project/proto/v1";
+
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+// import "protoc-gen-openapiv2/options/annotations.proto";
+
+service DummyService{
+    rpc ListUsers(google.protobuf.Empty) returns (stream UserResponse){
+        option (google.api.http) = {
+            get: "/v1/users"
+          };
+    }
+    rpc GetUser(GetRequest) returns (UserResponse){
+        option (google.api.http) = {
+            get: "/v1/users/{id}"
+          };
+    }
+    rpc CreateUser(CreateRequest) returns (AcknowlegeResponse){
+        option (google.api.http) = {
+            post: "/v1/users"
+            body: "*"
+          };
+    }
+}
+
+message User{
+    int32 id = 1;
+    string name = 2;
+    string role = 3;
+}
+
+message CreateRequest{
+    User user = 1;
+}
+
+message AcknowlegeResponse{
+    string response = 1;
+}
+
+message GetRequest{
+    int32 id = 1;
+}
+
+message UserResponse{
+    User user = 1;
+}
